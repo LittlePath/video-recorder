@@ -9,12 +9,17 @@ window.customElements.define('video-recorder',
       shadowRoot.appendChild(this.style);
       shadowRoot.appendChild(this.content);
       
-      let startStopButton = this.shadowRoot.querySelector('#start-stop');
-      startStopButton.addEventListener('click', (event) => this.startStopClickHandler(event) );
-
       this.mediaRecorder = undefined;
-      this.isRecording = false;
-   }
+
+      let startStopButton = this.shadowRoot.querySelector('#start-stop');
+      startStopButton.addEventListener('click', (event) => {
+        if(this.mediaRecorder && this.mediaRecorder.state === 'recording'){
+          this.stop();
+        }else{
+          this.start();
+        }
+      });
+    }
 
     get style(){
       let style = document.createElement('style');
@@ -30,28 +35,19 @@ window.customElements.define('video-recorder',
       let content = document.createElement('div');
       content.innerHTML = `
       <h2>Video Preview</h2>
-      <video id="preview" width="40%" autoplay muted playsinline></video>
-      <br>
-      <button id="start-stop">Start Recording</button>
+        <video id="preview" width="40%" autoplay muted playsinline></video>
+        <br>
+        <button id="start-stop">Start Recording</button>
 
       <h2>Video Recordings</h2>
       `;
       return content;
     }
 
-    startStopClickHandler(event){
-      if(this.isRecording){
-        this.stop();
-      }else{
-        this.start();
-      }
-    }
-
     start(){
       let startStopButton = this.shadowRoot.querySelector('#start-stop');
       startStopButton.innerHTML = 'Stop Recording';
       startStopButton.classList.add('stop');
-      this.isRecording = true;
 
       let videoChunks = [];
 
@@ -64,7 +60,7 @@ window.customElements.define('video-recorder',
       // .mp4  video/mp4
       const options = {
         type: 'video/webm'
-      }
+      };
         
       navigator.mediaDevices.getUserMedia(constraints)
         .then( (stream) => {
@@ -90,11 +86,10 @@ window.customElements.define('video-recorder',
       startStopButton.innerHTML = 'Start Recording';
       startStopButton.classList.remove('stop');
       this.mediaRecorder.stop();
-      this.isRecording = false;
     }
 
-    saveRecording(audioBlob){
-      let blobUrl = URL.createObjectURL(audioBlob);
+    saveRecording(videoBlob){
+      let blobUrl = URL.createObjectURL(videoBlob);
       let video = document.createElement('video');
       video.setAttribute('src', blobUrl);
       video.setAttribute('controls', '');
@@ -106,9 +101,5 @@ window.customElements.define('video-recorder',
       a.innerText = 'Download';
       this.shadowRoot.append(a);
     }
-
-
   }
-
-
 );
